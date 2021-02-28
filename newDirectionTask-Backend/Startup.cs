@@ -40,9 +40,9 @@ namespace newDirectionTask_Backend
             });
 
 
-            //Connectionstring for Database
+            //Database Connectionstring 
             services.AddDbContext<SearchContext>(opt =>
-                                               opt.UseSqlServer(@"Server=.\SQLEXPRESS;Database=searchitemsdb;Trusted_Connection=True;MultipleActiveResultSets=true"));
+                                               opt.UseSqlServer(@"Server=.\SQLEXPRESS;Database=searchitemsdb2;Trusted_Connection=True;MultipleActiveResultSets=true"));
             services.AddControllers();
 
 

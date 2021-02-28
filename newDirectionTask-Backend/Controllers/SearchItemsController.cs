@@ -207,42 +207,54 @@ namespace newDirectionTask_Backend.Controllers
         //this function count the word in the website and all the subpages
         public async Task<int> CountWordsinAll(HashSet<string> alllinks, string keyword)
         {
-
-            var count = 0;
+            var stopwatch  = System.Diagnostics.Stopwatch.StartNew();
+                       var count = 0;
             var links = alllinks
                 .Where(c => c.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase) ||
                    c.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase));
 
             List<string> urls = links.ToList();
-            const int CONCURRENCY_LEVEL = 20;
             int nextIndex = 0;
+
             var getWordCountTasks = new List<Task<int>>();
+            foreach (var item in urls)
+            {
+                getWordCountTasks.Add(CountWordInUri(item, keyword));
+            }
+            var counts = await Task.WhenAll(getWordCountTasks);
+            count = counts.Sum();
+
+
             //Fill First n
-            while (nextIndex < CONCURRENCY_LEVEL && nextIndex < urls.Count)
-            {
-                getWordCountTasks.Add(CountWordInUri(urls[nextIndex], keyword));
-                nextIndex++;
-            }
 
-            while (getWordCountTasks.Count > 0)
-            {
-                try
-                {
-                    Task<int> getWordCountTask = await Task.WhenAny(getWordCountTasks);
-                    getWordCountTasks.Remove(getWordCountTask);
+            //const int CONCURRENCY_LEVEL = 10;
+            //
+            //while (nextIndex < CONCURRENCY_LEVEL && nextIndex < urls.Count)
+            //{
+            //    getWordCountTasks.Add(CountWordInUri(urls[nextIndex], keyword));
+            //    nextIndex++;
+            //}
 
-                    int wordCount = await getWordCountTask;
-                    count += wordCount;
-                }
-                catch (Exception exc) { }
+            //while (getWordCountTasks.Count > 0)
+            //{
+            //    try
+            //    {
+            //        Task<int> getWordCountTask = await Task.WhenAny(getWordCountTasks);
+            //        getWordCountTasks.Remove(getWordCountTask);
 
-                if (nextIndex < urls.Count)
-                {
-                    getWordCountTasks.Add(CountWordInUri(urls[nextIndex], keyword));
-                    nextIndex++;
-                }
-            }
+            //        int wordCount = await getWordCountTask;
+            //        count += wordCount;
+            //    }
+            //    catch (Exception exc) { }
 
+            //    if (nextIndex < urls.Count)
+            //    {
+            //        getWordCountTasks.Add(CountWordInUri(urls[nextIndex], keyword));
+            //        nextIndex++;
+            //    }
+            //}
+            stopwatch.Stop();
+            var ministop = stopwatch.ElapsedMilliseconds;
             return count;
         }
 
